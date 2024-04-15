@@ -74,12 +74,28 @@ const ProductDetailsScreen = (props) => {
         </ScrollView>
 
         {/* Add to cart button */}
-        <Pressable style={styles.button} onPress={addToCart}>
+        <Pressable
+          style={({ pressed }) => [
+            {
+              opacity: pressed ? 0.9 : 1,
+            },
+            styles.button,
+          ]}
+          onPress={addToCart}
+        >
           <Text style={styles.buttonText}>Add to Cart</Text>
         </Pressable>
 
         {/* Navigation icon */}
-        <Pressable style={styles.icon} onPress={handleClose}>
+        <Pressable
+          style={({ pressed }) => [
+            {
+              opacity: pressed ? 0.8 : 1,
+            },
+            styles.icon,
+          ]}
+          onPress={handleClose}
+        >
           <Ionicons name="close" size={24} color="white" />
         </Pressable>
       </View>
