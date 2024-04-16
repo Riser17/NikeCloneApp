@@ -1,19 +1,39 @@
-import { useState } from "react";
-import { FlatList, Image, Pressable, StyleSheet, View } from "react-native";
-import { useDispatch, useSelector } from "react-redux";
+import { useState, useRef } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useDispatch } from "react-redux";
 
-import { productSlice } from "../store/productSlice";
+import { useGetProductsQuery } from "../store/apiSlice";
 import ProductDetailsScreen from "./ProductDetailsScreen";
 
 const ProductScreen = () => {
   const [isVisible, setIsVisible] = useState(false);
-
+  const itemIdRef = useRef(null);
   const dispatch = useDispatch();
 
-  const products = useSelector((state) => state.products.products);
+  // const products = useSelector((state) => state.products.products);
+  const { data, isLoading, error } = useGetProductsQuery(); // TODO data,isLoading, error manage automatically
+
+  if (isLoading) {
+    return <ActivityIndicator />;
+  }
+
+  if (error) {
+    return <Text>{error.error}</Text>;
+  }
+
+  const products = data.data;
 
   const productItemPressed = (item) => {
-    dispatch(productSlice.actions.setSelectedProduct(item.id));
+    itemIdRef.current = item._id;
+    // dispatch(productSlice.actions.setSelectedProduct(item.id));
     setIsVisible(!isVisible);
   };
   const onCloseMediaActionSheet = () => {
@@ -40,13 +60,14 @@ const ProductScreen = () => {
       <FlatList
         data={products}
         renderItem={productItemConatainer}
-        keyExtractor={(item) => item.id}
+        // keyExtractor={(item) => item.id}
         numColumns={2}
       />
       {isVisible ? (
         <ProductDetailsScreen
           show={isVisible}
           onClose={onCloseMediaActionSheet}
+          itemId={itemIdRef.current}
         />
       ) : null}
     </View>
