@@ -1,19 +1,31 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { useSelector } from "react-redux";
-import CartListItem from "../components/CartListItem";
-
 import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+
+import CartListItem from "../components/CartListItem";
+import {
+  cartSlice,
   selectDelivaryPrice,
   selectSubtotal,
   selectTotal,
 } from "../store/cartSlice";
+import { useCreateOrderMutation } from "../store/apiSlice";
 
 const ShoppingCart = () => {
-  const ShoopingCartTotals = () => {
-    const subtotal = useSelector(selectSubtotal);
-    const delivaryFee = useSelector(selectDelivaryPrice);
-    const total = useSelector(selectTotal);
+  const subtotal = useSelector(selectSubtotal);
+  const delivaryFee = useSelector(selectDelivaryPrice);
+  const total = useSelector(selectTotal);
 
+  const dispatch = useDispatch();
+
+  const ShoopingCartTotals = () => {
     return (
       <View style={styles.totalsContainer}>
         <View style={styles.row}>
@@ -21,7 +33,7 @@ const ShoppingCart = () => {
           <Text style={styles.text}>{subtotal} US$</Text>
         </View>
         <View style={styles.row}>
-          <Text style={styles.text}>Delivary</Text>
+          <Text style={styles.text}>Delivery</Text>
           <Text style={styles.text}>{delivaryFee} US$</Text>
         </View>
         <View style={styles.row}>
@@ -34,6 +46,36 @@ const ShoppingCart = () => {
 
   const cartItems = useSelector((state) => state.cart.items);
 
+  const [createOrder, { data, error, isLoading }] = useCreateOrderMutation();
+
+  const onCreateOrder = async () => {
+    const result = await createOrder({
+      items: cartItems,
+      subtotal,
+      delivaryFee,
+      total,
+      customer: {
+        name: "Mike",
+        address: "My home",
+        email: "Mike@example.com",
+      },
+    });
+    if (result.data?.status === "OK") {
+      Alert.alert(
+        "Order has been submitted",
+        `Your order reference is: ${result.data.data.ref}`,
+        [
+          {
+            text: "OK",
+            onPress: () => console.log("OK Pressed"),
+          },
+        ],
+        { cancelable: false }
+      );
+      dispatch(cartSlice.actions.clear());
+    }
+  };
+
   return (
     <>
       <FlatList
@@ -42,8 +84,11 @@ const ShoppingCart = () => {
         ListFooterComponent={ShoopingCartTotals}
       />
 
-      <Pressable style={styles.button}>
-        <Text style={styles.buttonText}>Checkout</Text>
+      <Pressable style={styles.button} onPress={onCreateOrder}>
+        <Text style={styles.buttonText}>
+          Checkout
+          {isLoading && <ActivityIndicator />}
+        </Text>
       </Pressable>
     </>
   );

@@ -20,13 +20,12 @@ const ProductDetailsScreen = (props) => {
   const { itemId, onClose } = props;
   const { data, isLoading, error } = useGetProductQuery(itemId);
   //const product = useSelector((state) => state.products.selectedProduct);
+  const product = data?.data;
   const dispatch = useDispatch();
 
   if (error) {
     return <Text>{error.error}</Text>;
   }
-
-  const product = data?.data;
 
   useEffect(() => {
     actionSheetRef.current?.show();
